@@ -1,2 +1,3 @@
 # OI-PPT
-NJU的算法竞赛老兵们整理的教学PPT
+
+calabash_boy的可持久化OI课件。
