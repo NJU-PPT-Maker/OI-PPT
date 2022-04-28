@@ -1,0 +1,435 @@
+%!TEX program = xelatex
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% This is a very basic template for mathematical presentations using LaTeX and beamer, aimed at University of Edinburgh students on the Honours Analysis course 2017-2018, for their "Skills" presentations.
+%
+% This template is just to get you started and to see what the possibilities are.  There is no required format, and you are free to use, discard, edit as much as you like.  I've put in some mathematical content to demonstrate the very basics of LaTeX.  Clearly, you will need to change this.
+%
+% Except for a few structural comments, I don't comment on the LaTeX itself.  If you have used it before, most of what you know should apply as usual.  If you have not, have a look at the source code, the output, and experiment with editing the code and see what happens.  Most LaTeX code is pretty intuitive, e.g. the command to produce an alpha is \alpha, the command for an integral sign is \int, etc.  You can learn an awful lot by guesswork, trial and error, and google.  
+%
+% The percent signs "%" are comment signs, and instruct LaTeX to ignore everything following the sign on the same line.  They can be used to comment on the code.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% The following lines are the preamble.  They help LaTeX set-up the document, but do not print anything yet.
+
+\documentclass{ctexbeamer}		% This tells LaTeX the document will be a "beamer" presentation
+
+\usetheme{Madrid}		% Sets basic formatting.  Lots of options, google "beamer themes"
+
+\usepackage{tikz}
+\usepackage[colorlinks,linkcolor=blue]{hyperref}
+%%% logo
+\pgfdeclareimage[height=0.8cm]{logo}{./logo.png}
+\logo{\pgfuseimage{logo}}
+%\logo{\vspace*{-0.3cm}\pgfuseimage{logo}}
+
+
+\usecolortheme{dolphin}	% Sets the colour scheme.  Lots of options, google "beamer color themes"
+
+%\setbeamertemplate{navigation symbols}{}
+% Manually changes one piece of formatting.  See what the difference is by commenting this line out.
+
+\date{}	% Insert the date of your presentation. \today gives an unsurprising automatic date.
+
+\title[String]{Trie,Border树}	% Insert your title.  Depending on the theme you choose above, a "short title" might be useful, as it will appear on the footer of each slide.
+
+\author[calabash\_boy]{calabash\_boy} % Insert your name
+
+\date{\today}
+
+\begin{document} 	% Let's begin
+
+% Presentations come in slide frames.  You have to tell LaTeX when to start a frame, and when to end the frame.  The most common error beginners make with beamer is forgetting the \end{frame} command.	
+
+\begin{frame}	
+
+\titlepage	% Prints a title page populated with the information given in the preamble
+	
+\end{frame}		
+
+\begin{frame}{问题背景}
+
+\begin{block}{背景}
+\textbf{字典}：一个字符串的集合称为字典。
+
+\textbf{字典串}：在字典里的串称为字典串。
+\hphantom{ }
+
+在处理字符串的时候，常会遇到这样的简单问题：给出一个字典，然后回答大量询问：输入一个字符串，判断它是否在字典中。
+
+\end{block}
+    
+\end{frame}
+
+\begin{frame}{Trie}
+
+\begin{block}{定义}
+Trie是一棵有根树，每个点至多有$|\Sigma|$个后继边，每条边上有一个字符。
+
+每个点表示一个前缀：从跟到这个点的边上的字符顺次连接形成的字符串。
+
+每个点还有一个终止标记：是否这个点代表的字符串是一个字典串。
+
+\hphantom{}
+
+\pause
+
+可以支持向Trie插入新字典串，删除字典串，查询某字符串是否是字典串，以及一些稍微复杂的查询。
+
+作为一个数据结构，它理所应当的还可以进行持久化。
+
+\end{block}    
+\end{frame}
+
+\begin{frame}
+\begin{figure}[h]
+    \centering
+\begin{tikzpicture}[greennode/.style={circle, draw=green!60, fill=green!5, very thick, minimum size=7mm},
+blacknode/.style={circle, draw=black!60, fill=grey!5, very thick, minimum size=7mm}]
+\node[blacknode] (root) at (0,0) {$\emptyset$};
+\node[blacknode] (a) at (-1,-1.5) {1};
+\draw[->] (root.south west) -- (a.north);
+\node at (-0.5, -0.75) {$a$};
+
+\node[blacknode] (ad) at(-2, -3) {2};
+\draw[->] (a.south west) -- (ad.north);
+\node at (-1.5, -2.25) {$d$};
+
+\node[greennode] (add) at (-3, -4.5) {3};
+\draw[->] (ad.south west) -- (add.north);
+\node at (-2.5, -3.75) {$d$};
+
+\node[blacknode] (ap) at (0, -3) {4};
+\draw[->] (a.south east) -- (ap.north);
+\node at (-0.5, -2.25) {$p$};
+
+\node[greennode] (app) at (1, -4.5) {5};
+\draw [->] (ap.south east) -- (app.north);
+\node at (0.5, -3.75) {$p$};
+
+\node [blacknode] (appl) at (1, -5.5) {6};
+\draw [->] (app.south) -- (appl.north);
+\node at (0.6, -5) {$l$};
+
+\node [greennode] (apple) at (1, -6.5) {7};
+\draw [->] (appl.south) -- (apple.north);
+\node at (0.6, -6) {$e$};
+
+\node [blacknode] (b) at (1, -1.5) {11};
+\draw [->] (root.south east) -- (b.north);
+\node at (0.5, -0.75) {$b$};
+
+\node [blacknode] (bo) at (2, -3) {12};
+\draw [->] (b.south east) -- (bo.north);
+\node at (1.5, -2.25) {$o$};
+
+\node[greennode] (boy) at (3, -4.5) {13};
+\draw [->] (bo.south east) --(boy.north);
+\node at (2.5, -3.75) {$y$};
+
+\node[blacknode] (boo) at (2, -4.5) {14};
+\draw [->] (bo.south) -- (boo.north);
+\node at (2.1, -3.75) {$o$};
+
+\node[greennode] (book) at (2, -6) {15};
+\draw [->] (boo.south) -- (book.north);
+\node at (2.1, -5.25) {$k$};
+
+\node[blacknode] (adm) at (-1, -4.5) {8};
+\draw [->] (ad.south east) -- (adm.north);
+\node at (-1.5, -3.75) {$m$};
+
+\node[blacknode] (admi) at (-1, -5.5) {9};
+\draw [->] (adm.south) -- (admi.north);
+\node at (-0.6, -5) {$i$};
+
+\node [greennode] (admit) at (-1, -6.5) {10};
+\draw [->] (admi.south) -- (admit.north);
+\node at (-0.6, -6) {$t$};
+
+
+\end{tikzpicture}
+\end{figure}
+
+\end{frame}
+
+
+\begin{frame}{例题1-Trie}
+
+\begin{block}{\href{https://ac.nowcoder.com/acm/contest/59/B}{练习赛11-假的字符串}}
+给定\textit{n}个不同的字符串$S_1, S_2, \cdots,S_n$你可以任意指定字符之间的大小关系（即重定义字典序），求有多少个串可能成为字典序最小的串。
+
+$n \leq 30, 000$ \hspace{4} $\sum_{i=1}^{n}|S_i| \leq 300, 000$
+\end{block}
+
+\pause
+
+\begin{block}{题解}
+先构建出字典树，然后逐个字符串判定可行性。
+
+\pause
+
+考虑$S_i$在字典树上的每个节点，如果有多于一个后继边，则$S_i$使用的字母必须小于其他字母。等价于判定26个点的有向图上是否有环（拓扑排序）。
+
+\pause
+额外需要注意不能有任何其他串等于$S_i$的前缀，即路径上不能有其他串的的终止节点。
+\end{block}
+\end{frame}
+
+\begin{frame}{01-Trie}
+\begin{block}{定义}
+01-Trie即对字符集只有2的字典串构建的Trie。常来解决01二进制串相关的字典序或者计数问题。
+\end{block}
+
+\end{frame}
+
+\begin{frame}{例题2-01-Trie}
+    
+\begin{block}{\href{https://ac.nowcoder.com/acm/problem/22998}{奶牛异或}}
+给出一个正整数数组$A$，长度不超过$100,000$。定义区间异或和为区间所有数字异或起来的结果。
+
+求最大区间异或和。
+\end{block}
+
+\pause
+\begin{block}{题解}
+首先求出异或前缀和
+
+$Sum[0] = 0, Sum[1] = A[1], Sum[2] = Sum[1] \textcircled{+} A[2], \cdots, Sum[n] = Sum[n-1] \textcircled{+} A[n]$
+
+则每个区间的异或和可以表示成两个前缀和的异或。问题转化为$n+1$个数字中选两个做异或运算的最大值。可以用01Trie解决。
+\end{block}
+\end{frame}
+
+\begin{frame}{例题2-01-Trie}
+    
+\begin{block}{题解}
+枚举一个数字$x$，然后寻找与他异或结果最大的另一个数字$y$。
+
+\pause
+
+由于相同宽度的两个二进制数字的大小关系等价于字典序关系。
+
+\pause
+
+从高到低考虑$x$的每一个二进制位$bit$：如果$y$的这一位也是$bit$，则异或结果的这一位为$0$；如果$y$的这一位是$!bit$，则异或结果的这一位为$1$。
+
+\pause
+
+将所有数字插入到01Trie中，枚举$x$，在01Trie上寻找$y$：从根出发，如果有$!bit$边，则走$!bit$边，否则只能走$bit$边。
+
+\end{block}
+\end{frame}
+
+\begin{frame}{例题3-01-Trie}
+
+\begin{block}{\href{https://www.luogu.com.cn/problem/P4735}{某谷 P4735} \& \href{https://ac.nowcoder.com/acm/problem/51120}{牛客51120}}
+给出一个数组$A$，长度为$n \leq 300,000$，再给出$Q \leq 300, 000$次操作:
+
+1. 修改操作：将数字$x$添加到数组末尾，数组长度$n$变为$n+1$。
+
+2. 查询操作：求区间$[\textbf{l},\textbf{r}]$内的$p$，使得$A[p] \textcircled{+} A[p+1]  \textcircled{+} \cdots \textcircled{+}A[n] \textcircled{+} \textbf{X}$最大。
+\end{block}
+
+\pause
+
+\begin{block}{题解}
+从查询入手，
+$$
+A[p] \textcircled{+}A[p+1] \textcircled{+} \cdots \textcircled{+} A[n] \textcircled{+} X = 
+Sum[n] \textcircled{+} Sum[p-1] \textcircled{+} X
+$$
+
+\pause
+
+由于$Y = Sum[n] \textcircled{+} X$为定值，因此查询等价于求最大的$Sum[p-1] \textcircled{+} Y$。
+
+\pause
+
+如果没有限制$p$的范围，则用01-Trie解决即可。
+
+本题限制了$p$的区间，则用持久化01-Trie解决即可。
+
+\end{block}
+
+\end{frame}
+
+\begin{frame}{例题4-01-Trie}
+    
+\begin{block}{\href{http://codeforces.com/contest/888/problem/G}{CF 888G Xor-MST} \& \href{https://ac.nowcoder.com/acm/problem/112412}{牛客112412}}
+有一个$n\leq 200,000$的无向完全图，每个点$u$有一个点权为$0\leq A[u]\leq 2^{30}$。
+
+任意两个点$u,v$之间的边权为$A[u] \textcircled{+} A[v]$。求最小生成树。
+\end{block}
+
+\pause
+
+\begin{block}{题解}
+
+较常见的两种生成树算法\textit{Kruskal}和\textit{Prim}都不能很好的处理本题。
+
+\pause
+
+江湖中流传着另一种生成树算法Boruvka：每一轮每个连通块独立去寻找连接另一个连通块的最短边，如此的迭代至多进行$logn$轮。
+
+\pause
+
+先将所有$A[i]$插入01-Trie。在每轮迭代中，枚举所有连通块，枚举连通块里的值$A[j]$，求与其他连通块内点的最小异或值。可以先将该连通块的点先从01-Trie中删除，在处理完该连通块之后，再将他们放回。
+
+\end{block}
+\end{frame}
+
+
+\begin{frame}{Border 树}
+
+\begin{block}{定义}
+
+对于一个字符串\textit{S}，$n = |S|$，它的\textbf{Border 树}（也叫next树）共有$n + 1$个节点：$0,1,2,\dots ,n$。
+
+\textbf{0}是这棵有向树的根。对于其他每个点$1 \leq i \leq n$，父节点为$next[i]$。
+
+\end{block}
+
+\pause
+
+\hphantom{}
+
+\begin{tikzpicture}[minimum height = 6.5mm]
+
+\node (c0) at (-0.5,0) [draw] {\color{red}{$\emptyset$}};
+\node (c1) at (0,0) [draw]{b};
+\draw [->] (c1.north) .. controls (0, 0.7) and (-0.5, 0.7) .. (c0.north);
+\node (c2) at (0.5,0) [draw]{b};
+\draw [->] (c2.north) .. controls (0.5, 0.7) and (0, 0.7) .. (c1.north);
+\node (c3) at (1,0) [draw]{a};
+\draw [->] (c3.north) .. controls (1, 1) and (-0.5, 1) .. (c0.north);
+\node (c4) at (1.5,0) [draw]{b};
+\draw [->] (c4.south) .. controls (1.5, -1) and (0, -1) .. (c1.south);
+\node (c5) at (2.0,0) [draw]{b};
+\draw [->] (c5.south) .. controls (2.0, -1) and (0.5, -1) .. (c2.south);
+\node (c6) at (2.5,0) [draw]{b};
+\draw [->] (c6.north) .. controls (2, 1) and (1, 1) .. (c2.north);
+\node (c7) at (3.0,0) [draw]{a};
+\draw [->] (c7.south) .. controls (2.5, -1) and (1.5, -1) .. (c3.south);
+\node (c8) at (3.5,0) [draw]{b};
+\draw [->] (c8.north) .. controls (3, 1) and (2, 1) .. (c4.north);
+
+
+\node (n0) at (8, 2) [draw, shape = circle] {\color{red}{$\emptyset$}};
+\draw [<-] (n0.south west) -- (n1.north east);
+\draw [<-] (n0.south east) -- (n3.north west);
+\node (n1) at (6, 1) [draw, shape = circle] {1};
+\draw [<-] (n1.south west) -- (n2.north east);
+\draw [<-] (n1.south east) -- (n4.north west);
+\node (n3) at (10, 1) [draw, shape = circle] {3};
+\draw [<-] (n3.south) -- (n7.north);
+\node (n2) at (5, 0) [draw, shape = circle] {2};
+\draw [<-] (n2.south) -- (n5.north);
+\draw [<-] (n2.south east) -- (n6.north);
+\node (n4) at (7, 0) [draw, shape = circle] {4};
+\draw [<-] (n4.south) -- (n8.north); 
+\node (n7) at (10, -0.5) [draw, shape = circle] {7};
+\node (n5) at (5, -1.5) [draw, shape = circle] {5};
+\node (n6) at (6, -1.5) [draw, shape = circle] {6};
+\node (n8) at (7, -1.5) [draw, shape = circle] {8};
+
+\end{tikzpicture}
+
+\end{frame} 
+
+\begin{frame}{Border 树}
+\begin{block}{性质}
+1.每个前缀$Prefix[i]$的所有Border：节点$i$到根的链。
+
+2.哪些前缀有长度为$x$的Border：$x$的子树。
+
+3.求两个前缀的公共Border等价于求LCA。
+
+\end{block}
+
+\pause
+
+\begin{block}{例题5-Border树 \href{https://www.luogu.com.cn/problem/P5829}{某谷P5829}}
+
+给出一个字符串\textit{S}，$|S| \leq 1000, 000$，有$Q \leq 100, 000$次询问：前缀$S[1,p]$与前缀$S[1,q]$的最大公共Border长度。
+
+\end{block}
+\end{frame}
+\begin{frame}{Border树}
+\begin{block}{例题6-Border树}
+字符串\textit{S}长度不超过$10^6$，求一个最长的子串\textit{T}，满足：
+
+\begin{itemize}
+    \item \textit{T}为\textit{S}的前缀。
+    \item \textit{T}为\textit{S}的后缀。
+    \item \textit{T}在S中至少出现\color{red}\textit{K}\color{black}次。
+\end{itemize}
+
+\end{block}
+
+\pause
+
+\begin{block}{例题7-Border树}
+字符串\textit{S}长度不超过$200,000$，有$Q \leq 200, 000$次操作：
+
+1. 修改操作：向字符串末尾添加一个字符$ch$。
+
+2. 查询操作：求一个最长的子串\textit{T}，满足：
+
+\begin{itemize}
+    \item \textit{T}为\textit{S}的前缀。
+    \item \textit{T}为\textit{S}的后缀。
+    \item \textit{T}在S中至少出现\color{red}\textit{K}\color{black}次。
+\end{itemize}
+
+\end{block}
+    
+\end{frame}
+
+\begin{frame}{AC自动机}
+    
+\begin{block}
+
+AC自动机 = Trie + Border树。
+
+日后再讲。
+\end{block}
+\end{frame}
+
+\iffalse
+
+\begin{frame}{字符串匹配}
+
+\begin{block}{KMP自动机}
+
+关于KMP匹配的第二种理解，就是将整个匹配过程看作是S在T这个自动机上运行。
+
+这个自动机的状态为：当前匹配了T的前缀长度\textit{len}，当接受一个新的字符\textit{ch}时，能够匹配T的前缀长度为$trans[len][ch]$。
+
+\pause
+
+\begin{itemize}
+    \item 如果$ch == T[len + 1]$匹配成功，显然，$trans[len][ch] = len + 1$。
+    
+    \pause
+    
+    \item 否则，就需要沿着$Prefix[len]$的Border($next$数组)一直跳，一直到有某个Border($next[j]$)能接受字符\textit{ch}，即：$ch == T[next[j] + 1]$，则$trans[len][ch] = next[j] + 1$。
+    
+    \pause
+    
+    \item 如果没有任何Border能接受字符\textit{ch}，则$trans[len][ch] = 0$。
+\end{itemize}
+
+\end{block}
+    
+\end{frame}
+
+
+
+\hphantom{}
+
+而KMP自动机的$trans[i][ch]$数组可以利用DP的方法在$O(|\Sigma|\cdot n)$的时间内求出。
+
+\fi
+\end{document}	% Done!

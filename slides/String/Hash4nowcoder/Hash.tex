@@ -1,0 +1,400 @@
+%!TEX program = xelatex
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% This is a very basic template for mathematical presentations using LaTeX and beamer, aimed at University of Edinburgh students on the Honours Analysis course 2017-2018, for their "Skills" presentations.
+%
+% This template is just to get you started and to see what the possibilities are.  There is no required format, and you are free to use, discard, edit as much as you like.  I've put in some mathematical content to demonstrate the very basics of LaTeX.  Clearly, you will need to change this.
+%
+% Except for a few structural comments, I don't comment on the LaTeX itself.  If you have used it before, most of what you know should apply as usual.  If you have not, have a look at the source code, the output, and experiment with editing the code and see what happens.  Most LaTeX code is pretty intuitive, e.g. the command to produce an alpha is \alpha, the command for an integral sign is \int, etc.  You can learn an awful lot by guesswork, trial and error, and google.  
+%
+% The percent signs "%" are comment signs, and instruct LaTeX to ignore everything following the sign on the same line.  They can be used to comment on the code.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% The following lines are the preamble.  They help LaTeX set-up the document, but do not print anything yet.
+
+\documentclass{ctexbeamer}		% This tells LaTeX the document will be a "beamer" presentation
+
+\usetheme{Madrid}		% Sets basic formatting.  Lots of options, google "beamer themes"
+
+\usepackage{tikz}
+\usepackage[colorlinks,linkcolor=blue]{hyperref}
+%%% logo
+\pgfdeclareimage[height=0.8cm]{logo}{./logo.png}
+\logo{\pgfuseimage{logo}}
+%\logo{\vspace*{-0.3cm}\pgfuseimage{logo}}
+
+
+\usecolortheme{dolphin}	% Sets the colour scheme.  Lots of options, google "beamer color themes"
+
+%\setbeamertemplate{navigation symbols}{}
+% Manually changes one piece of formatting.  See what the difference is by commenting this line out.
+
+\date{}	% Insert the date of your presentation. \today gives an unsurprising automatic date.
+
+\title[String]{Hash}	% Insert your title.  Depending on the theme you choose above, a "short title" might be useful, as it will appear on the footer of each slide.
+
+\author[calabash\_boy]{calabash\_boy} % Insert your name
+
+\date{\today}
+
+\begin{document} 	% Let's begin
+
+% Presentations come in slide frames.  You have to tell LaTeX when to start a frame, and when to end the frame.  The most common error beginners make with beamer is forgetting the \end{frame} command.	
+
+\begin{frame}	
+
+\titlepage	% Prints a title page populated with the information given in the preamble
+	
+\end{frame}		
+
+\begin{frame}{Hash定义}
+    
+\begin{block}{定义}
+Hash是一种单射函数，可以将万物\textbf{单向}映射成一个整数值。
+
+\pause
+字符串Hash就是指将一个字符串映射成一个整数值的方法，通常用来快速比较两个字符串是否相等。
+
+约定：$H(S)$表示一个字符串\textit{S}通过Hash算法($H$)映射成的整数值。
+
+\pause
+
+例如：$S = abcde$，$H(S) = 12345$，$H'(S) = 54321$.
+\end{block}
+
+\pause
+
+\begin{block}{性质}
+
+\begin{itemize}
+    \item 必要性：若字符串$S = T$，则一定有$H(S) = H(T)$。
+    \item 非充分性：若$H(S) = H(T)$，不一定有$S=T$
+\end{itemize}
+
+\end{block}
+
+\end{frame}
+
+\begin{frame}{Hash检测}
+\begin{block}{定义}
+\textbf{Hash检测}：通过$H(S)$和$H(T)$是否相等，来判断$S$和$T$是否相等的方法。
+\hphantom{}
+
+Hash冲突：$H(S) = H(T)$，但$S \neq T$，即为发生了Hash冲突。
+
+{\color{red}\textbf{Hash检测时发生Hash冲突的概率是衡量Hash算法好坏的重要指标}}
+\end{block}
+\end{frame}
+
+\begin{frame}{设计Hash算法}
+
+\begin{block}{XJB Hash}
+充分发挥主观能动性，自行发明创造一些Hash算法。
+
+例如：定义$H(S) = |S| * (S[1] + S[|S|])$
+\end{block}
+\pause
+\begin{block}{优缺点}
+优点：获得一些成就感。在某些特殊场景，可能会适用。
+
+缺点：值域的利用率低，且冲突概率很高，beach == bitch？
+
+\end{block}
+
+\end{frame}
+
+\begin{frame}{设计Hash算法}
+
+\begin{block}{多项式Hash}
+将字符串看作是某个进制（Base）下的数字串，
+\begin{align*}
+H(S) &= \sum_{i=1}^{i<=|S| = n}{S[i] * Base^{1 + n - i}} = \textbf{H(S[1, |S| - 1]) * Base + S[|S|]}\\
+&= S[1] * Base^n + S[2] * Base^{n-1} + \cdots + S[n] * Base^0
+\end{align*}
+
+\pause
+
+例如:字符集$\Sigma = \{a, b, \cdots , o\}$，字符串就可以看成16进制数字串。
+
+其中‘a’对应1,'b'对应2,...,'j'对应A(10),...,'o'对应F(15)。
+
+\pause
+
+若 $S = adenoo$，则$H(S) = 145EFF_{(16)} = 1335039_{(10)}$
+\end{block}
+
+\pause
+\begin{block}{优缺点}
+\textbf{优点}：字符串和Hash值一一对应，不会发生Hash冲突。
+
+\textbf{缺点}：数字范围过大，难以用原始数据结构存储和比较。
+
+\end{block}
+
+\end{frame}
+
+\begin{frame}{设计Hash算法}
+
+\begin{block}{多项式取模Hash(模哈)}
+模哈是为了解决多项式Hash的缺点，在效率和冲突率之间进行的折衷：将多项式Hash的值对一个较大的质数取模。
+\begin{align*}
+H'(S) &=H(S)\textbf{ \%Mod} = \textbf{(}\sum_{i=1}^{i<=|S| = n}{S[i] * Base^{n - i}}\textbf{) \%Mod} \\
+&= \textbf{(}S[1] * Base^{n-1} + S[2] * Base^{n-2} + \cdots + S[n] * Base^0\textbf{) \%Mod}
+\end{align*}
+
+\end{block}
+
+\pause
+
+\begin{block}{优缺点}
+\textbf{优点}：使得多项式Hash可以用原始数据结构(uint/ulong)存储和比较。
+
+\textbf{缺点}：会有小概率发生Hash冲突。
+\end{block}
+
+\end{frame}
+
+\begin{frame}{设计Hash算法}
+    
+
+\begin{block}{模哈冲突概率}
+模哈冲突是指：
+$H(S) \neq H(T)$但$H(S) \textbf{\%Mod} = H(T) \textbf{\% Mod}$
+
+模运算可以看作是一个均匀随机散列，即每个$H(S)$会被随机的映射成$[0, Mod-1]$内的整数。
+
+\end{block}
+
+\pause
+
+\begin{block}{生日悖论}
+有\textit{n}个人，每个人的生日可以认为是$[1, 365]$范围内的随机整数。
+
+若$n>365$，则一定有两个人生日相同。
+
+若$n \leq 365$，则没有人生日相同的概率为：$\frac{A(365,n)}{365^n}$。
+
+当$n = 23$时， 上述结果约为$0.46$。即有超过50\%的概率有人生日相同。
+
+\pause
+
+即当随即检验次数超过$\sqrt{Mod}$时，就会有较大概率发生错误。
+
+\textbf{因此，在模哈中使用的Mod最好超过Hash检验次数的平方。}
+\end{block}
+
+\end{frame}
+
+\begin{frame}{Hash的三种姿势}
+\begin{block}{Hash模数}
+优秀的Hash模数首先应满足：{\color{red}足够大}
+
+\pause
+
+\textbf{自然溢出}：使用\textit{ULL}保存Hash值，利用硬件特性，使Hash值自然溢出，即实现模数为$2^{64}$，但容易构造Hash冲突。（详见BZOJ3097）
+
+\pause
+\hphantom{}
+
+优秀的Hash模数还应是一个{\color{red}质数}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.6\textwidth]{./1.jpg}
+    \label{fig:my_label}
+\end{figure}
+
+\end{block}
+\end{frame}
+\begin{frame}{Hash的三种姿势}
+\begin{block}{Hash模数}
+\textbf{质数模哈（单模）}：选取$10^9$到$10^{10}$范围的大质数作为Hash模数。但也有广为人知的方法构造冲突。
+
+\pause
+\hphantom{}
+
+\textbf{双模（多模）}：进行多次不同质数的单模哈希，有效降低冲突概率。在不泄露模数的前提下，没有已知方法可以构造冲突。
+
+\pause
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\textwidth]{./2.jpg}
+    \label{fig:my_label}
+\end{figure}
+
+\hphantom{}
+
+\href{https://planetmath.org/goodhashtableprimes}{\color{blue}一些比较好的Hash素数}
+\end{block}
+\end{frame}
+
+\begin{frame}{例题1}
+
+\begin{block}{子串比较}
+
+给出一个字符串\textit{S}，$|S| \leq 100,000$。
+
+共由$Q \leq 100,000$次询问：$S[l_1, r_1]$与$S[l_2,r_2]$是否相等。
+
+\end{block}
+
+\pause
+
+\begin{block}{题解}
+需要设计一种数据结构，快速求出子串的Hash值。
+\end{block}
+
+\end{frame}
+
+\begin{frame}{子串Hash}
+
+\begin{block}{子串Hash}
+$$
+H(S[l,r]) &= \textbf{(}S[l] * Base^{r-l} + S[l+1] * Base^{(r-l-1)} + \cdots + S[r]\textbf{) \%Mod}
+$$
+
+\pause
+
+\textbf{令}$\textbf{F(i) = H(Prefix[i])}$
+\begin{align*}
+F(l-1) &= \textbf{(} S[1] * Base ^ {l-2} + S[2] * Base^{l-3} + \cdots + S[l-1]
+\textbf{) \%Mod}\\
+F(r) &= \textbf{(} S[1] * Base ^ {r-1} + S[2] * Base^{r-2} + \cdots + S[r]\textbf{) \%Mod}\\
+\end{align*}
+
+\pause
+
+因此 \hspace{20mm}
+\textbf{$\color{red}H(S[l,r]) = F(r) - F(l-1) * Base^{r - l + 1}$}
+
+所以只需要求出每个前缀的Hash值$F(i)$，就可以快速求出子串Hash值。
+\end{block}
+\end{frame}
+
+\begin{frame}{例题2}
+
+\begin{block}{回文串}
+给出一个字符串\textit{S}，每次操作可以删除最末尾的一个字符，最少进行多少次操作可以得到一个回文串。
+\end{block}
+
+\pause
+
+\begin{block}{题解}
+
+题目等价于求最长的回文前缀。对于回文串，正串和反串是相同的，可以利用Hash判定。枚举答案长度进行检测即可。
+
+\pause
+
+\hphantom{}
+
+\textbf{不能二分答案}。
+
+\end{block}
+
+\end{frame}
+
+\begin{frame}{例题3}
+
+\begin{block}{子串字典序比较1}
+
+给出一个正整数数组$A$，长度不超过$100,000$，以及$Q \leq 100,000$次询问：
+
+子串$A[l_1, r_1]$和$A[l_2, r_2]$的字典序大小关系。
+
+\end{block}
+
+\pause
+
+\begin{block}{题解}
+
+判定两个串的字典序等价于求解两个串的\textbf{最长公共前缀(LCP)}，所以本题要求快速求出两个子串的LCP。
+
+\pause
+
+方法1：后缀数组SA，复杂度$O(n \log n)$日后再讲。
+
+\pause
+
+\hphantom{}
+
+方法2：LCP满足二分性，问题转化为判定两个子串是否相等，可以用Hash解决。复杂度$O(n \log n)$。
+
+\end{block}
+\end{frame}
+
+\begin{frame}{例题4}
+
+\begin{block}{子串字典序比较2}
+
+给出一个正整数数组$A$，长度不超过$100,000$，以及$Q \leq 100,000$次操作：
+
+\textbf{询问}：子串$A[l_1, r_1]$和$A[l_2, r_2]$的字典序大小关系。
+
+\textbf{修改}：将$A[x]$的值替换为\textit{y}。
+
+\end{block}
+
+\pause
+
+\begin{block}{题解}
+
+询问依然使用二分+Hash。
+
+由于两串拼接，其Hash值可以快速和并。因此可以使用线段树维护Hash值。
+
+复杂度$O(n \log^{2} n)$
+
+\end{block}
+
+\end{frame}
+
+\begin{frame}{例题5}
+
+\begin{block}{子串字典序比较3}
+给出一个正整数数组$A$，长度不超过$100,000$，以及$Q \leq 100,000$次操作：
+
+\textbf{询问}：子串$A[l_1, r_1]$和$A[l_2, r_2]$的字典序大小关系。
+
+\textbf{修改}：将区间$[l,r]$位置的数字值增加1。
+
+\end{block}
+
+\pause
+
+\begin{block}{题解}
+询问依然使用二分+Hash。
+
+修改操作对线段树节点的影响为：加上$Base^p + Base^{p+1} + \cdots + Base^q$。
+
+提前求出Base等比数列的前缀和，使用区间修改线段树即可。
+\end{block}
+
+\end{frame}
+
+\begin{frame}{例题6}
+
+\begin{block}{\href{http://codeforces.com/problemset/problem/580/E}{CF580E}}
+给出一个数组$A$，进行$Q$次操作：
+
+\textbf{询问}：$p$是否是区间$[L,R]$的周期。
+
+\textbf{修改}：将区间$[L,R]$的数字赋值为$k$。
+\end{block}
+
+\pause
+
+\begin{block}{题解}
+
+由上节课可以知道：询问等价于询问$R - L + 1 - p$是否为$[L,R]$的Border，即是否有$A[L,R - p] == A[L + p,R]$。可以利用Hash解决。
+
+修改操作可以利用线段树维护Hash。
+
+\end{block}
+
+\end{frame}
+
+
+
+\end{document}	% Done!

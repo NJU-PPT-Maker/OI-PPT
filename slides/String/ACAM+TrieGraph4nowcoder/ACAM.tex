@@ -1,0 +1,959 @@
+%!TEX program = xelatex
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% This is a very basic template for mathematical presentations using LaTeX and beamer, aimed at University of Edinburgh students on the Honours Analysis course 2017-2018, for their "Skills" presentations.
+%
+% This template is just to get you started and to see what the possibilities are.  There is no required format, and you are free to use, discard, edit as much as you like.  I've put in some mathematical content to demonstrate the very basics of LaTeX.  Clearly, you will need to change this.
+%
+% Except for a few structural comments, I don't comment on the LaTeX itself.  If you have used it before, most of what you know should apply as usual.  If you have not, have a look at the source code, the output, and experiment with editing the code and see what happens.  Most LaTeX code is pretty intuitive, e.g. the command to produce an alpha is \alpha, the command for an integral sign is \int, etc.  You can learn an awful lot by guesswork, trial and error, and google.  
+%
+% The percent signs "%" are comment signs, and instruct LaTeX to ignore everything following the sign on the same line.  They can be used to comment on the code.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% The following lines are the preamble.  They help LaTeX set-up the document, but do not print anything yet.
+
+\documentclass{ctexbeamer}		% This tells LaTeX the document will be a "beamer" presentation
+
+\usetheme{Madrid}		% Sets basic formatting.  Lots of options, google "beamer themes"
+
+\usepackage{tikz}
+\usepackage[colorlinks,linkcolor=blue]{hyperref}
+%%% logo
+\pgfdeclareimage[height=0.8cm]{logo}{./logo.png}
+\logo{\pgfuseimage{logo}}
+%\logo{\vspace*{-0.3cm}\pgfuseimage{logo}}
+
+
+\usecolortheme{dolphin}	% Sets the colour scheme.  Lots of options, google "beamer color themes"
+
+%\setbeamertemplate{navigation symbols}{}
+% Manually changes one piece of formatting.  See what the difference is by commenting this line out.
+
+\date{}	% Insert the date of your presentation. \today gives an unsurprising automatic date.
+
+\title[String]{AC自动机，Trie图}	% Insert your title.  Depending on the theme you choose above, a "short title" might be useful, as it will appear on the footer of each slide.
+
+\author[calabash\_boy]{calabash\_boy} % Insert your name
+
+\date{\today}
+
+\begin{document} 	% Let's begin
+
+% Presentations come in slide frames.  You have to tell LaTeX when to start a frame, and when to end the frame.  The most common error beginners make with beamer is forgetting the \end{frame} command.	
+
+\begin{frame}	
+
+\titlepage	% Prints a title page populated with the information given in the preamble
+	
+\end{frame}		
+
+\begin{frame}{问题背景}
+
+\begin{block}{背景}
+
+给出一个字典，和若干询问：多少个字典串在询问串中出现过。
+
+即单串与多串的匹配问题。
+
+\end{block}
+    
+\end{frame}
+
+\begin{frame}{暴力算法}
+
+\begin{block}{KMPの打法}
+
+将问题看作是：每个字典串与询问串的单模式匹配。
+
+\pause
+
+\textbf{缺点: 字典串形成了孤岛，没有打通链路，形成闭环，导致复杂度很高。}
+
+\end{block}
+
+\pause
+
+\begin{block}{Trieの打法}
+
+利用字典树进行多模式匹配。
+
+\pause
+
+\textbf{缺点：不能够在失配时进行合理的跳转，盲目尝试，导致复杂度很高。。}
+
+\end{block}
+
+\end{frame}
+
+\begin{frame}{AC自动机}
+
+\begin{block}{AC自动机 = Trie + KMP}
+
+AC自动机基于Trie，将KMP的Border概念推广到多模式串上。
+
+\pause
+
+AC自动机是一种离线型数据结构，即不支持增量添加新的字符串。
+
+\pause
+
+AC自动机常用于将字符串询问类的问题进行离线处理，也经常与各种DP结合，或是补全成Trie图。
+
+\end{block}
+
+\end{frame}
+
+\begin{frame}{border概念的推广}
+
+\begin{block}{广义border}
+
+\textbf{推广到两个串}：对于两个串\textit{S}和\textit{T}，相等的\textit{p}长度的\textit{S}的后缀和\textit{T}的前缀称为一个border。
+
+\pause 
+
+\hphantom{}
+
+\textbf{推广到一个字典}：对于串\textit{S}和一个字典\textit{D}，相等的\textit{p}长度的\textit{S}的后缀，和任意一个字典串\textit{T}的前缀称为一个border。
+
+\pause
+
+\hphantom{}
+
+\textbf{\color{red}失配（Fail）指针：} 
+对于Trie中的每一个节点（即某个字典串的前缀），它与Trie中所有串的最大Border即为失配指针。
+
+\end{block}
+    
+\end{frame}
+
+\begin{frame}{AC自动机}
+
+\begin{block}{失配指针}
+
+类似与KMP求Border，任意节点的Border长度减一，一定是父节点的Border。因此可以通过遍历父节点的失配指针链来求解。
+
+\pause
+
+因此在求失配指针的时候，一定要按长度从小到大来求，即bfs。
+
+\end{block}
+    
+\pause
+
+\begin{block}{复杂度分析}
+
+类似于KMP的势能分析方法，势能总量等于Trie的节点总数，因此复杂度为线性的。
+
+\end{block}
+
+\end{frame}
+
+\begin{frame}{Trie}
+
+\begin{figure}[h]
+
+    \centering
+
+\begin{tikzpicture}[greennode/.style={circle, draw=green!60, fill=green!5, very thick, minimum size=7mm},
+blacknode/.style={circle, draw=black!60, fill=grey!5, very thick, minimum size=7mm}]
+
+\node[blacknode] (root) at (0,0) {$\emptyset$};
+\node[blacknode] (a) at (-2,-1.5) {1};
+\draw[->] (root.south west) -- (a.north);
+\node at (-1, -0.75) {$a$};
+
+\node[blacknode] (ab) at (-2, -3) {2};
+\draw[->] (a.south) -- (ab.north);
+\node at (-1.8, -2.25) {$b$};
+
+\node[blacknode] (aba) at (-2, -4.5) {3};
+\draw[->](ab.south) -- (aba.north);
+\node at (-1.8, -3.75) {$a$};
+
+\node[greennode] (abac) at (-2, -6) {4};
+\draw[->](aba.south) -- (abac.north);
+\node at (-1.8, -5.25) {$c$};
+
+\node[greennode] (abc) at (-3, -4.5) {5};
+\draw[->](ab.south west) -- (abc.north);
+\node at (-2.5, -3.75) {$c$};
+
+\node[blacknode] (b) at (0, -1.5) {6};
+\draw[->] (root.south) -- (b.north);
+\node at (0.2, -0.75) {$b$};
+
+\node[blacknode] (ba) at (0, -3) {7};
+\draw[->] (b.south) -- (ba.north);
+\node at (0.2, -2.25) {$a$};
+
+\node[blacknode] (bab) at (0, -4.5) {8};
+\draw[->] (ba.south) -- (bab.north);
+\node at (0.2, -3.75) {$b$};
+
+\node[greennode] (babc) at (0, -6) {9};
+\draw[->] (bab.south) -- (babc.north);
+\node at (0.2, -5.25) {$c$};
+
+\node[greennode] (bc) at (1, -3) {10};
+\draw[->] (b.south east) -- (bc.north);
+\node at (0.8, -2.1) {$c$};
+
+\node[blacknode] (c) at (2, -1.5) {11};
+\draw[->] (root.south east) -- (c.north);
+\node at (1, -0.75) {$c$};
+
+\node[blacknode] (ca) at (3, -3) {12};
+\draw[->] (c.south east) -- (ca.north);
+\node at (2.5, -2.25) {$a$};
+
+
+\node[greennode] (cab) at (3, -4.5) {13};
+\draw[->] (ca.south) -- (cab.north);
+\node at (3.2, -3.75) {$b$};
+
+\end{tikzpicture}
+
+\end{figure}
+
+\end{frame}
+
+\begin{frame}{求失配指针-Layer 1}
+
+\begin{figure}[h]
+
+    \centering
+
+\begin{tikzpicture}[greennode/.style={circle, draw=green!60, fill=green!5, very thick, minimum size=7mm},
+blacknode/.style={circle, draw=black!60, fill=grey!5, very thick, minimum size=7mm}]
+
+\node[blacknode] (root) at (0,0) {$\emptyset$};
+\node[blacknode] (a) at (-2,-1.5) {1};
+\draw[->] (root.south west) -- (a.north);
+\node at (-1, -0.75) {$a$};
+
+\node[blacknode] (ab) at (-2, -3) {2};
+\draw[->] (a.south) -- (ab.north);
+\node at (-1.8, -2.25) {$b$};
+
+\node[blacknode] (aba) at (-2, -4.5) {3};
+\draw[->](ab.south) -- (aba.north);
+\node at (-1.8, -3.75) {$a$};
+
+\node[greennode] (abac) at (-2, -6) {4};
+\draw[->](aba.south) -- (abac.north);
+\node at (-1.8, -5.25) {$c$};
+
+\node[greennode] (abc) at (-3, -4.5) {5};
+\draw[->](ab.south west) -- (abc.north);
+\node at (-2.5, -3.75) {$c$};
+
+\node[blacknode] (b) at (0, -1.5) {6};
+\draw[->] (root.south) -- (b.north);
+\node at (0.2, -0.75) {$b$};
+
+\node[blacknode] (ba) at (0, -3) {7};
+\draw[->] (b.south) -- (ba.north);
+\node at (0.2, -2.25) {$a$};
+
+\node[blacknode] (bab) at (0, -4.5) {8};
+\draw[->] (ba.south) -- (bab.north);
+\node at (0.2, -3.75) {$b$};
+
+\node[greennode] (babc) at (0, -6) {9};
+\draw[->] (bab.south) -- (babc.north);
+\node at (0.2, -5.25) {$c$};
+
+\node[greennode] (bc) at (1, -3) {10};
+\draw[->] (b.south east) -- (bc.north);
+\node at (0.8, -2.1) {$c$};
+
+\node[blacknode] (c) at (2, -1.5) {11};
+\draw[->] (root.south east) -- (c.north);
+\node at (1, -0.75) {$c$};
+
+\node[blacknode] (ca) at (3, -3) {12};
+\draw[->] (c.south east) -- (ca.north);
+\node at (2.5, -2.25) {$a$};
+
+
+\node[greennode] (cab) at (3, -4.5) {13};
+\draw[->] (ca.south) -- (cab.north);
+\node at (3.2, -3.75) {$b$};
+
+\draw[->, dashed, color = red,line width = 2pt](a.north west) .. controls (-3.5, -1) and (-1, 0) .. (root.west);
+
+\draw[-> , dashed, color = red,line width = 2pt](b.north west) .. controls (-0.75, -0.75) .. (root.south); 
+
+\draw[->, dashed, color = red,line width = 2pt](c.north east) .. controls (3.5, -0.5) and (1, 0) .. (root.east);
+
+\end{tikzpicture}
+
+\end{figure}
+
+\end{frame}
+
+\begin{frame}{求失配指针-Layer 2}
+
+\begin{figure}[h]
+
+    \centering
+
+\begin{tikzpicture}[greennode/.style={circle, draw=green!60, fill=green!5, very thick, minimum size=7mm},
+blacknode/.style={circle, draw=black!60, fill=grey!5, very thick, minimum size=7mm}]
+
+\node[blacknode] (root) at (0,0) {$\emptyset$};
+\node[blacknode] (a) at (-2,-1.5) {1};
+\draw[->] (root.south west) -- (a.north);
+\node at (-1, -0.75) {$a$};
+
+\node[blacknode] (ab) at (-2, -3) {2};
+\draw[->] (a.south) -- (ab.north);
+\node at (-1.8, -2.25) {$b$};
+
+\node[blacknode] (aba) at (-2, -4.5) {3};
+\draw[->](ab.south) -- (aba.north);
+\node at (-1.8, -3.75) {$a$};
+
+\node[greennode] (abac) at (-2, -6) {4};
+\draw[->](aba.south) -- (abac.north);
+\node at (-1.8, -5.25) {$c$};
+
+\node[greennode] (abc) at (-3, -4.5) {5};
+\draw[->](ab.south west) -- (abc.north);
+\node at (-2.5, -3.75) {$c$};
+
+\node[blacknode] (b) at (0, -1.5) {6};
+\draw[->] (root.south) -- (b.north);
+\node at (0.2, -0.75) {$b$};
+
+\node[blacknode] (ba) at (0, -3) {7};
+\draw[->] (b.south) -- (ba.north);
+\node at (0.2, -2.25) {$a$};
+
+\node[blacknode] (bab) at (0, -4.5) {8};
+\draw[->] (ba.south) -- (bab.north);
+\node at (0.2, -3.75) {$b$};
+
+\node[greennode] (babc) at (0, -6) {9};
+\draw[->] (bab.south) -- (babc.north);
+\node at (0.2, -5.25) {$c$};
+
+\node[greennode] (bc) at (1, -3) {10};
+\draw[->] (b.south east) -- (bc.north);
+\node at (0.8, -2.1) {$c$};
+
+\node[blacknode] (c) at (2, -1.5) {11};
+\draw[->] (root.south east) -- (c.north);
+\node at (1, -0.75) {$c$};
+
+\node[blacknode] (ca) at (3, -3) {12};
+\draw[->] (c.south east) -- (ca.north);
+\node at (2.5, -2.25) {$a$};
+
+
+\node[greennode] (cab) at (3, -4.5) {13};
+\draw[->] (ca.south) -- (cab.north);
+\node at (3.2, -3.75) {$b$};
+
+\draw[->, dashed, color = blue,line width = 1.5pt](a.north west) .. controls (-3.5, -1) and (-1, 0) .. (root.west);
+
+\draw[-> , dashed, color = blue,line width = 1.5pt](b.north west) .. controls (-0.75, -0.75) .. (root.south); 
+
+\draw[->, dashed, color = blue,line width = 1.5pt](c.north east) .. controls (3.5, -0.5) and (1, 0) .. (root.east);
+
+\draw[->, dashed, color = red, line width = 2pt](ab.north east) ..controls (-1, -2.5).. (b.south west);
+
+\draw [->, dashed, color = red, line width = 2pt](ba.north west) .. controls (-1, -2.5) .. (a.south east);
+
+\draw [->, dashed, color = red, line width = 2pt](bc.east) .. controls (1.75, -2.75) .. (c.south);
+
+\draw[->, dashed, color = red, line width = 2pt](ca.south west) .. controls (0, -4.5) and (-1, -3) .. (a.south east);
+
+\end{tikzpicture}
+
+\end{figure}
+
+\end{frame}
+
+\begin{frame}{求失配指针-Layer 3}
+
+\begin{figure}[h]
+
+    \centering
+
+\begin{tikzpicture}[greennode/.style={circle, draw=green!60, fill=green!5, very thick, minimum size=7mm},
+blacknode/.style={circle, draw=black!60, fill=grey!5, very thick, minimum size=7mm}]
+
+\node[blacknode] (root) at (0,0) {$\emptyset$};
+\node[blacknode] (a) at (-2,-1.5) {1};
+\draw[->] (root.south west) -- (a.north);
+\node at (-1, -0.75) {$a$};
+
+\node[blacknode] (ab) at (-2, -3) {2};
+\draw[->] (a.south) -- (ab.north);
+\node at (-1.8, -2.25) {$b$};
+
+\node[blacknode] (aba) at (-2, -4.5) {3};
+\draw[->](ab.south) -- (aba.north);
+\node at (-1.8, -3.75) {$a$};
+
+\node[greennode] (abac) at (-2, -6) {4};
+\draw[->](aba.south) -- (abac.north);
+\node at (-1.8, -5.25) {$c$};
+
+\node[greennode] (abc) at (-3, -4.5) {5};
+\draw[->](ab.south west) -- (abc.north);
+\node at (-2.5, -3.75) {$c$};
+
+\node[blacknode] (b) at (0, -1.5) {6};
+\draw[->] (root.south) -- (b.north);
+\node at (0.2, -0.75) {$b$};
+
+\node[blacknode] (ba) at (0, -3) {7};
+\draw[->] (b.south) -- (ba.north);
+\node at (0.2, -2.25) {$a$};
+
+\node[blacknode] (bab) at (0, -4.5) {8};
+\draw[->] (ba.south) -- (bab.north);
+\node at (0.2, -3.75) {$b$};
+
+\node[greennode] (babc) at (0, -6) {9};
+\draw[->] (bab.south) -- (babc.north);
+\node at (0.2, -5.25) {$c$};
+
+\node[greennode] (bc) at (1, -3) {10};
+\draw[->] (b.south east) -- (bc.north);
+\node at (0.8, -2.1) {$c$};
+
+\node[blacknode] (c) at (2, -1.5) {11};
+\draw[->] (root.south east) -- (c.north);
+\node at (1, -0.75) {$c$};
+
+\node[blacknode] (ca) at (3, -3) {12};
+\draw[->] (c.south east) -- (ca.north);
+\node at (2.5, -2.25) {$a$};
+
+
+\node[greennode] (cab) at (3, -4.5) {13};
+\draw[->] (ca.south) -- (cab.north);
+\node at (3.2, -3.75) {$b$};
+
+\draw[->, dashed, color = blue,line width = 1.5pt](a.north west) .. controls (-3.5, -1) and (-1, 0) .. (root.west);
+
+\draw[-> , dashed, color = blue,line width = 1.5pt](b.north west) .. controls (-0.75, -0.75) .. (root.south); 
+
+\draw[->, dashed, color = blue,line width = 1.5pt](c.north east) .. controls (3.5, -0.5) and (1, 0) .. (root.east);
+
+\draw[->, dashed, color = blue, line width = 1.5pt](ab.north east) ..controls (-1, -2.5).. (b.south west);
+
+\draw [->, dashed, color = blue, line width = 1.5pt](ba.north west) .. controls (-1, -2.5) .. (a.south east);
+
+\draw [->, dashed, color = blue, line width = 1.5pt](bc.east) .. controls (1.75, -2.75) .. (c.south);
+
+\draw[->, dashed, color = blue, line width = 1.5pt](ca.south west) .. controls (0, -4.5) and (-1, -3) .. (a.south east);
+
+\draw[->, dashed, color = red, line width = 2pt](aba.east) .. controls (-1.25, -4.5) and (-0.5, -4) .. (ba.south west);
+
+\draw[->, dashed, color = red, line width = 2pt](abc.south) .. controls (-3, -5.5) and (1.25, -6) .. (bc.south);
+
+\draw[->, dashed, color = red, line width = 2pt](bab.west) .. controls (-0.75, -4.5) and (-1.5, -4) .. (ab.south east);
+
+\draw[->, dashed, color = red, line width = 2pt](cab.south) .. controls (0.5, -6.25) and (-1, -5) .. (ab.south east);
+
+\end{tikzpicture}
+
+\end{figure}
+
+\end{frame}
+
+\begin{frame}{求失配指针-Layer 4}
+
+\begin{figure}[h]
+
+    \centering
+
+\begin{tikzpicture}[greennode/.style={circle, draw=green!60, fill=green!5, very thick, minimum size=7mm},
+blacknode/.style={circle, draw=black!60, fill=grey!5, very thick, minimum size=7mm}]
+
+\node[blacknode] (root) at (0,0) {$\emptyset$};
+\node[blacknode] (a) at (-2,-1.5) {1};
+\draw[->] (root.south west) -- (a.north);
+\node at (-1, -0.75) {$a$};
+
+\node[blacknode] (ab) at (-2, -3) {2};
+\draw[->] (a.south) -- (ab.north);
+\node at (-1.8, -2.25) {$b$};
+
+\node[blacknode] (aba) at (-2, -4.5) {3};
+\draw[->](ab.south) -- (aba.north);
+\node at (-1.8, -3.75) {$a$};
+
+\node[greennode] (abac) at (-2, -6) {4};
+\draw[->](aba.south) -- (abac.north);
+\node at (-1.8, -5.25) {$c$};
+
+\node[greennode] (abc) at (-3, -4.5) {5};
+\draw[->](ab.south west) -- (abc.north);
+\node at (-2.5, -3.75) {$c$};
+
+\node[blacknode] (b) at (0, -1.5) {6};
+\draw[->] (root.south) -- (b.north);
+\node at (0.2, -0.75) {$b$};
+
+\node[blacknode] (ba) at (0, -3) {7};
+\draw[->] (b.south) -- (ba.north);
+\node at (0.2, -2.25) {$a$};
+
+\node[blacknode] (bab) at (0, -4.5) {8};
+\draw[->] (ba.south) -- (bab.north);
+\node at (0.2, -3.75) {$b$};
+
+\node[greennode] (babc) at (0, -6) {9};
+\draw[->] (bab.south) -- (babc.north);
+\node at (0.2, -5.25) {$c$};
+
+\node[greennode] (bc) at (1, -3) {10};
+\draw[->] (b.south east) -- (bc.north);
+\node at (0.8, -2.1) {$c$};
+
+\node[blacknode] (c) at (2, -1.5) {11};
+\draw[->] (root.south east) -- (c.north);
+\node at (1, -0.75) {$c$};
+
+\node[blacknode] (ca) at (3, -3) {12};
+\draw[->] (c.south east) -- (ca.north);
+\node at (2.5, -2.25) {$a$};
+
+
+\node[greennode] (cab) at (3, -4.5) {13};
+\draw[->] (ca.south) -- (cab.north);
+\node at (3.2, -3.75) {$b$};
+
+\draw[->, dashed, color = blue,line width = 1.5pt](a.north west) .. controls (-3.5, -1) and (-1, 0) .. (root.west);
+
+\draw[-> , dashed, color = blue,line width = 1.5pt](b.north west) .. controls (-0.75, -0.75) .. (root.south); 
+
+\draw[->, dashed, color = blue,line width = 1.5pt](c.north east) .. controls (3.5, -0.5) and (1, 0) .. (root.east);
+
+\draw[->, dashed, color = blue, line width = 1.5pt](ab.north east) ..controls (-1, -2.5).. (b.south west);
+
+\draw [->, dashed, color = blue, line width = 1.5pt](ba.north west) .. controls (-1, -2.5) .. (a.south east);
+
+\draw [->, dashed, color = blue, line width = 1.5pt](bc.east) .. controls (1.75, -2.75) .. (c.south);
+
+\draw[->, dashed, color = blue, line width = 1.5pt](ca.south west) .. controls (0, -4.5) and (-1, -3) .. (a.south east);
+
+\draw[->, dashed, color = blue, line width = 1.5pt](aba.east) .. controls (-1.25, -4.5) and (-0.5, -4) .. (ba.south west);
+
+\draw[->, dashed, color = blue, line width = 1.5pt](abc.south) .. controls (-3, -5.5) and (1.25, -6) .. (bc.south);
+
+\draw[->, dashed, color = blue, line width = 1.5pt](bab.west) .. controls (-0.75, -4.5) and (-1.5, -4) .. (ab.south east);
+
+\draw[->, dashed, color = blue, line width = 1.5pt](cab.south) .. controls (0.5, -6.25) and (-1, -5) .. (ab.south east);
+
+\draw[->, dashed, color = red, line width = 2pt](abac.south east) .. controls (-0.25, -7) and (1.75, -7.25) .. (c.south);
+
+\draw[->, dashed, color = red, line width = 2pt](babc.south west) .. controls (-1, -6.5) and (-2.5, -7.5) .. (abc.south);
+
+\end{tikzpicture}
+
+\end{figure}
+
+\end{frame}
+
+\begin{frame}{AC自动机}
+
+\begin{figure}[h]
+    \centering
+
+\begin{tikzpicture}[greennode/.style={circle, draw=green!60, fill=green!5, very thick, minimum size=7mm},
+blacknode/.style={circle, draw=black!60, fill=grey!5, very thick, minimum size=7mm}]
+
+\node[blacknode] (root) at (0,0) {$\emptyset$};
+\node[blacknode] (a) at (-2,-1.5) {1};
+\draw[->] (root.south west) -- (a.north);
+\node at (-1, -0.75) {$a$};
+
+\node[blacknode] (ab) at (-2, -3) {2};
+\draw[->] (a.south) -- (ab.north);
+\node at (-1.8, -2.25) {$b$};
+
+\node[blacknode] (aba) at (-2, -4.5) {3};
+\draw[->](ab.south) -- (aba.north);
+\node at (-1.8, -3.75) {$a$};
+
+\node[greennode] (abac) at (-2, -6) {4};
+\draw[->](aba.south) -- (abac.north);
+\node at (-1.8, -5.25) {$c$};
+
+\node[greennode] (abc) at (-3, -4.5) {5};
+\draw[->](ab.south west) -- (abc.north);
+\node at (-2.5, -3.75) {$c$};
+
+\node[blacknode] (b) at (0, -1.5) {6};
+\draw[->] (root.south) -- (b.north);
+\node at (0.2, -0.75) {$b$};
+
+\node[blacknode] (ba) at (0, -3) {7};
+\draw[->] (b.south) -- (ba.north);
+\node at (0.2, -2.25) {$a$};
+
+\node[blacknode] (bab) at (0, -4.5) {8};
+\draw[->] (ba.south) -- (bab.north);
+\node at (0.2, -3.75) {$b$};
+
+\node[greennode] (babc) at (0, -6) {9};
+\draw[->] (bab.south) -- (babc.north);
+\node at (0.2, -5.25) {$c$};
+
+\node[greennode] (bc) at (1, -3) {10};
+\draw[->] (b.south east) -- (bc.north);
+\node at (0.8, -2.1) {$c$};
+
+\node[blacknode] (c) at (2, -1.5) {11};
+\draw[->] (root.south east) -- (c.north);
+\node at (1, -0.75) {$c$};
+
+\node[blacknode] (ca) at (3, -3) {12};
+\draw[->] (c.south east) -- (ca.north);
+\node at (2.5, -2.25) {$a$};
+
+
+\node[greennode] (cab) at (3, -4.5) {13};
+
+\draw[->] (ca.south) -- (cab.north);
+
+\node at (3.2, -3.75) {$b$};
+
+\draw[->, dashed, color = blue,line width = 1.5pt](a.north west) .. controls (-3.5, -1) and (-1, 0) .. (root.west);
+
+\draw[-> , dashed, color = blue,line width = 1.5pt](b.north west) .. controls (-0.75, -0.75) .. (root.south); 
+
+\draw[->, dashed, color = blue,line width = 1.5pt](c.north east) .. controls (3.5, -0.5) and (1, 0) .. (root.east);
+
+\draw[->, dashed, color = blue, line width = 1.5pt](ab.north east) ..controls (-1, -2.5).. (b.south west);
+
+\draw [->, dashed, color = blue, line width = 1.5pt](ba.north west) .. controls (-1, -2.5) .. (a.south east);
+
+\draw [->, dashed, color = blue, line width = 1.5pt](bc.east) .. controls (1.75, -2.75) .. (c.south);
+
+\draw[->, dashed, color = blue, line width = 1.5pt](ca.south west) .. controls (0, -4.5) and (-1, -3) .. (a.south east);
+
+\draw[->, dashed, color = blue, line width = 1.5pt](aba.east) .. controls (-1.25, -4.5) and (-0.5, -4) .. (ba.south west);
+
+\draw[->, dashed, color = blue, line width = 1.5pt](abc.south) .. controls (-3, -5.5) and (1.25, -6) .. (bc.south);
+
+\draw[->, dashed, color = blue, line width = 1.5pt](bab.west) .. controls (-0.75, -4.5) and (-1.5, -4) .. (ab.south east);
+
+\draw[->, dashed, color = blue, line width = 1.5pt](cab.south) .. controls (0.5, -6.25) and (-1, -5) .. (ab.south east);
+
+\draw[->, dashed, color = blue, line width = 1.5pt](abac.south east) .. controls (-0.25, -7) and (1.75, -7.25) .. (c.south);
+
+\draw[->, dashed, color = blue, line width = 1.5pt](babc.south west) .. controls (-1, -6.5) and (-2.5, -7.5) .. (abc.south);
+
+\end{tikzpicture}
+
+\end{figure}
+
+\end{frame}
+
+\begin{frame}{例题1}
+    
+\begin{block}{\href{https://www.luogu.com.cn/problem/P5357}{某谷P5357}}
+给出一个文本串\textit{S}和一个字典，求每个字典串在\textit{S}中的出现次数。
+
+\end{block}
+
+\pause
+
+\begin{block}{题解}
+
+将文本串放在AC自动机上运行，求出每个前缀匹配到AC自动机的哪个节点，将该节点的标记值+1。
+
+\pause
+
+每个字典串的出现次数等于失配树的子树内的标记总量。因此在失配树上，自底向上推标记即可。
+
+\end{block}
+
+\end{frame}
+
+\begin{frame}{例题2}
+
+\begin{block}{\href{https://ac.nowcoder.com/acm/problem/14612}{牛客14612}}
+
+给出一个有$N$个串的字典，然后进行$M$次操作：
+
+1. 修改操作：向字典中新增一个字典串$S$。
+
+2. 查询操作：查询所有字典串在询问串$T$中的出现次数，同一个字典串重复出现算多次。
+
+$1 \leq N,M \leq 100,000$, 输入字符串总长度不超过$3000, 000$。
+
+\end{block}
+
+\pause
+
+\begin{block}{题解}
+
+先无视修改操作，只考虑查询操作：可以建出AC自动机，然后将查询串在AC自动机上运行，匹配到AC自动机的一个节点时，将该节点到根的路径上终止标记个数计入答案。
+
+\pause
+
+由于AC自动机是\textbf{离线型数据结构}，即不能支持快速增删字典串，因此考虑到修改操作需要先离线，动态维护终止标记，使用dfs序+树状数组快速维护每个点到根路径上的终止标记个数。
+
+\end{block}
+
+\end{frame}
+
+\begin{frame}{例题3}
+    
+\begin{block}{\href{https://www.luogu.com.cn/problem/P7456}{某谷P7456}}
+
+给出一个字典，至多包含$300,000$个字典串，且字典串总长度不超过$300, 000$。
+
+再给出一个文本串$T$($|T| \leq 300, 000$)，问最少使用多少个字典串可以拼接出$T$。同一个字典串使用多次算多次。
+
+拼接时允许重叠，只需要保证重叠部分匹配即可，例如$T = abcd$，可以使用字典串$S = cdxx$拼接成$T' = abcdxx$。
+
+\end{block}
+
+\pause
+
+\begin{block}{题解}
+
+首先比较容易想到使用DP：$f[i]$表示拼接出$T[1, i]$的操作次数.
+
+\pause
+
+转移时，设某字典串$S_i$等于$T[1, i]$的后缀，会导致如下转移：
+
+\pause
+
+$f[i] = 、\min(f[i-1], f[i-2], \cdots, f[i - |S_i|]]) + 1$。因此只需要寻找长度最长的字典串即可，使用AC自动机可以解决。
+
+\pause
+
+然后使用线段树辅助进行DP转移。
+
+复杂度$O(300000 \cdot (26 + \log{n}))$。
+
+\end{block}
+
+\end{frame}
+
+\begin{frame}{例题4}
+    
+\begin{block}{\href{https://ac.nowcoder.com/acm/problem/20155}{牛客20155}}
+
+给出一个字典，至多包含60个字典串，且字典串总长度不超过100。
+
+求所有长度为M($\leq 100$)的串中（共$26^M$个），有多少个串至少包含一个字典串。
+
+\end{block}
+
+\pause
+
+\begin{block}{题解}
+
+答案 = $26^M$ - 完全不包含字典串的串个数。
+
+\pause
+
+包含与不包含本质上都是字符串匹配问题，因此本题为字符串多模式匹配，很容易想到利用AC自动机。
+
+\pause
+
+设$f[len][u]$表示长度为$len$的字符串，当前匹配到了AC自动机的$u$节点的方案数。
+
+\pause
+
+转移时枚举下一个字符，然后找到匹配的AC自动机节点$v$(这一步的复杂度为$O(depth)$)，如果$v$是一个终止节点，则是一个不合法的转移。
+
+\pause
+
+复杂度$O(M \cdot 100 \cdot 100 \cdot 26) = 2.7\cdot10^7$
+
+\end{block}
+
+\end{frame}
+
+\begin{frame}{例题5-Trie图}
+
+\begin{block}{加强版\href{https://ac.nowcoder.com/acm/problem/20155}{牛客20155}}
+
+给出一个字典，至多包含60个字典串，且字典串总长度不超过100。
+
+求所有长度为M($\color{red}\leq 10000$)的串中（共$26^M$个），有多少个串至少包含一个字典串。
+
+\end{block}
+
+\pause
+
+\begin{block}{Trie图}
+
+用上题的做法复杂度高达$2.7 \cdot 10^9$不能通过。因此需要进行优化：
+
+\pause
+
+可以比较容易的观察到可以与处理出$trans[u][ch]=$AC自动机节点$u$，后面添加字符$ch$后会转移到哪个节点。\textbf{如此可以省掉跳Fail链的复杂度}。
+
+\pause
+
+求$trans[u][ch]$时，讨论：
+
+1. 如果$u$节点有$ch$后继边，则$trans[u][ch] = nxt[u][ch]$。
+
+2.否则，$trans[u][ch] = trans[Fail[u]][ch]$。
+
+\pause
+
+因此$trans$数组也需要使用bfs来求，可以和AC自动机的构造放在一起进行。
+
+\end{block}
+    
+\end{frame}
+
+\begin{frame}{例题6-Trie图}
+    
+\begin{block}{\href{https://www.luogu.com.cn/problem/P2444}{某谷P2444}}
+
+给出$N \leq 2,000$个01串，它们每一个表示一段病毒序列，病毒代码总长度不超过$30, 000$。
+
+求是否存在无限长度的01串，不包含任意病毒序列作为子串。
+
+\end{block}
+
+\pause
+
+\begin{block}{题解}
+
+本题本质是问：Trie图上（去掉所有终止节点）是否存在无限长度的路径，充要条件为：有环。
+
+\pause
+
+因此本题需要先构造AC自动机，然后补全成为Trie图，使用拓扑排序判定是否有环。
+
+注意，这个环必须是$root$节点可达的。
+
+复杂度$O(30, 000 \cdot 2)$。
+
+\end{block}
+
+\end{frame}
+
+\begin{frame}{例题7}
+
+\begin{block}{\href{https://ac.nowcoder.com/acm/problem/20366}{牛客20366}}
+
+我们称一个正整数N是幸运数，当且仅当它的十进制表示中不包含数字串集合S中任意一个元素作为其子串。例如当S=\{22，333，0233\}时，233是幸运数，2333、20233、3223不是幸运数。     
+
+给定\textit{N}和\textit{S}，计算不大于\textit{N}的幸运数个数。
+
+$1 \leq n \leq 10^{1201}$，\textit{S}中至多有$100$个串，总长度不超过$1,500$。
+
+\end{block}
+
+\pause
+
+\begin{block}{题解}
+
+本题与上一题的唯一区别是生硬地结合了数位DP。
+
+令$f[u][len][all\_zero][limit]$表示：长度为$len$的数字串，匹配到AC自动机的$u$节点，$all\_zero = 0/1$表示是否数字串全零，$limit = 0/1$表示数字串是否等于$N$的前缀的方案数，注意如果$all\_zero = 1$，数字串匹配到的AC自动机节点必须是$root$。
+
+需要将AC自动机补全为Trie图，复杂度$O(1201 \cdot 1500 \cdot 2 \cdot 2 \cdot 26) = 1.8 \cdot 10^8$。实际上并没有这么高。
+
+\end{block}
+
+
+\end{frame}
+
+\begin{frame}{例题8}
+    
+\begin{block}{\href{http://codeforces.com/contest/547/problem/E}{CF547E}}
+
+给出$N$个字符串，设$f(S,T)$表示$T$在$S$中的出现次数。
+
+给出$Q$次询问：
+
+给定$L,R,K$，求$\sum_{i = L}^{i \leq R}{f(S_i,S_K)}$
+
+\end{block}
+
+\pause
+
+\begin{block}{题解}
+
+本题做法很多，其中一种做法是《AC自动机Fail树Dfs序上建可持久化线段树》。
+
+\pause
+
+先建出AC自动机，在回答询问的时候先找到$S_K$所在的节点$u$，那么完整包含字符串$S_K$的状态节点一定位于$u$的Fail树子树内。
+
+\pause
+
+即问题等价于询问$u$的Fail树子树内，$S_L, S_{L+1}, \cdots, S_R$的前缀节点个数有多少。
+
+\pause
+
+子树求和，比较容易转化为Dfs序的区间求和，对字典串的区间询问，容易转化成持久化数据结构。即Dfs序上建可持久化线段树。
+
+\end{block}
+
+\end{frame}
+
+\begin{frame}{例题9}
+
+\begin{block}{\href{}{ICPC WF 2019G First of Her Name}}
+
+给出$n$个人，他们每个人的名字都是之前某个人的名字在最前边加上一个字母得到。比如2号的名字是$AC$，3号在2号前边加一个字母$K$，这样3号的名字是$KAC$。
+
+之后给出k次询问，每次给出一个字符串$T$，询问名字前缀是$T$的有几个人。
+
+\end{block}
+
+\pause
+
+\begin{block}{题解}
+
+本题题解大致有三种：广义SAM，树上SA，离线AC自动机。
+
+\pause
+
+不难看出输入是一个Trie树，但是每个点表示的串是反过来的：从这个点到根，而不是从根到这个点。可以简单将所有人名字反过来，同时将询问也反过来。
+
+即询问有多少个Trie节点表示的（正）串以询问串的反串$T'$为后缀。
+
+\end{block}
+    
+\end{frame}
+
+\begin{frame}{例题9}
+
+\begin{block}{题解}
+
+在AC自动机上，以某个节点$u$表示的串作为后缀的串，全部位于该节点的Fail树子树内。因此本题的思路依然是将文本串放在AC自动机上运行（匹配），然后自底向上推标记。
+
+\pause
+
+离线对所有询问串的反串建AC自动机。
+
+\pause
+
+然后将整个Trie树放在AC自动机上运行：即找到每个Trie树节点表示的串匹配到AC自动机的哪个节点。可以用bfs/dfs遍历Trie树。
+
+\end{block}
+
+\pause
+
+\begin{block}{其他解法}
+
+\href{https://blog.csdn.net/calabash_boy/article/details/89048824}{本题的三种解法}
+
+\end{block}
+
+\end{frame}
+
+\end{document}	% Done!
